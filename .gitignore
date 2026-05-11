@@ -1,0 +1,24 @@
+# Binary
+pictl
+*.bin
+
+# Go build artifacts
+*.exe
+*.out
+
+# Environment / secrets
+.env
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# Config with sensitive data
+cluster.local.yaml
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+*.swp
