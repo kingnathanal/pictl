@@ -6,7 +6,7 @@ nodes:
   - name: pi00-wifi
     ip: 192.168.1.126
     role: worker
-    user: 
+    user: kingnathanal
   - name: pi01-wifi
     ip: 192.168.1.135
     role: worker
