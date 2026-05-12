@@ -52,7 +52,7 @@ func RunCommand(client *ssh.Client, cmd string) (string, error) {
 
 	out, err := session.CombinedOutput(cmd)
 	if err != nil {
-		return "", fmt.Errorf("command failed [%s]: %w", cmd, err)
+		return string(out), fmt.Errorf("command failed [%s]: %w", cmd, err)
 	}
 	return string(out), nil
 }
