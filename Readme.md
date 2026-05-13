@@ -126,10 +126,24 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 
 ### M3 — Fleet targeting and command execution
 
+- [x] Add global config path handling with `--config` and `PICTL_CONFIG`
+- [x] Use Cobra `RunE` so command errors return cleanly to the root command
 - [ ] Add `--node` targeting for a single Pi
 - [ ] Add `--role` targeting for groups of Pis
 - [ ] Add `pictl exec` to run a command across selected nodes
 - [ ] Add safer command output formatting for multi-node results
+- [ ] Add total and per-node timing output for long-running commands like `update`
+- [ ] Add `pictl update --parallel` for intentionally concurrent updates
+
+### M3.5 — Fleet config management
+
+- [ ] Add `pictl node list`
+- [ ] Add `pictl node add`
+- [ ] Add duplicate validation for node name and IP address
+- [ ] Add `pictl node remove`
+- [ ] Add `pictl node update` for changing role, user, or IP address
+- [ ] Keep `cluster.yaml` as the source of truth while allowing commands to edit it
+- [ ] Optionally validate SSH reachability when adding a node
 
 ### M4 — Fleet health checks
 
@@ -158,6 +172,15 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 - [ ] Add `pictl reboot --rolling`
 - [ ] Add `pictl update --rolling`
 - [ ] Add confirmation prompts for disruptive operations
+
+### M8 — Discovery and auth improvements
+
+- [ ] Add `pictl discover --subnet 192.168.1.0/24`
+- [ ] Detect SSH hosts on port 22
+- [ ] Attempt Raspberry Pi identification through SSH when credentials are available
+- [ ] Show discovered candidates before adding them to config
+- [ ] Add optional password prompt auth without storing plaintext passwords in YAML
+- [ ] Add SSH agent and passphrase-aware key support
 
 ### Optional modules
 
