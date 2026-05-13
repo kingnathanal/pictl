@@ -11,15 +11,16 @@ import (
 var infoCMD = &cobra.Command{
 	Use:   "info",
 	Short: "Collect and display stats about all nodes in the cluster",
-	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.LoadConfig("cluster.yaml")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cfg, err := config.LoadConfig(getConfigPath())
 		if err != nil {
-			fmt.Printf("Error loading config: %v\n", err)
-			return
+			return fmt.Errorf("loading config: %w", err)
 		}
 		fmt.Println("Collecting node stats...")
 		results := internalssh.CollectAll(cfg.Nodes, cfg.SSHKeyPath)
 		internalssh.PrintStatsTable(results)
+
+		return nil
 	},
 }
 

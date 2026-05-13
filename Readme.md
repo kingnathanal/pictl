@@ -1,6 +1,6 @@
-# 🥧 pictl
+# pictl
 
-A lightweight CLI tool written in Go for managing a Raspberry Pi K3s home lab cluster. Built as a hands-on Go learning project — real tool, real cluster, real code.
+A lightweight CLI tool written in Go for managing a fleet of Raspberry Pis over SSH. Built as a hands-on Go learning project: real tool, real devices, real operational workflows.
 
 ---
 
@@ -8,7 +8,7 @@ A lightweight CLI tool written in Go for managing a Raspberry Pi K3s home lab cl
 
 - **Ping sweep** — check SSH reachability across all nodes concurrently
 - **Node stats** — pull CPU usage, CPU temp, memory, disk, hostname, and OS info from every Pi in one shot
-- **Apt update** — run `apt update && apt upgrade` across the entire cluster in parallel
+- **Apt update** — run `apt update && apt upgrade` across the fleet
 
 ---
 
@@ -29,7 +29,7 @@ pictl/
 │       ├── ping.go      # TCP reachability check
 │       ├── stats.go     # Node metrics collection
 │       └── update.go    # Apt update logic
-├── cluster.yaml         # Node definitions
+├── cluster.yaml         # Fleet node definitions
 ├── go.mod
 ├── go.sum
 └── main.go
@@ -75,7 +75,7 @@ Create a `cluster.yaml` in the same directory you run `pictl` from:
 | `ssh_key_path` | Path to your SSH private key. Supports `~` expansion. |
 | `name` | Display name for the node |
 | `ip` | Node IP address |
-| `role` | `control-plane` or `worker` (informational for now) |
+| `role` | Optional grouping label such as `worker`, `kiosk`, `camera`, `sensor`, or `control-plane` |
 | `user` | SSH user on the Pi (typically `pi`) |
 
 ---
@@ -118,4 +118,52 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 
 > CPU usage is measured using two `/proc/stat` snapshots 1 second apart within a single SSH session, then calculating the delta.
 
-More on the way
+---
+
+## Roadmap
+
+`pictl` is intended to stay useful for any Raspberry Pi running Raspberry Pi OS or Debian with SSH enabled. K3s support can be added later as an optional module, but the core tool should remain focused on generic fleet operations.
+
+### M3 — Fleet targeting and command execution
+
+- [ ] Add `--node` targeting for a single Pi
+- [ ] Add `--role` targeting for groups of Pis
+- [ ] Add `pictl exec` to run a command across selected nodes
+- [ ] Add safer command output formatting for multi-node results
+
+### M4 — Fleet health checks
+
+- [ ] Add `pictl check` for pass/warn/fail health checks
+- [ ] Detect undervoltage and throttling with `vcgencmd get_throttled`
+- [ ] Detect low disk space, high temperature, failed systemd units, and reboot-required state
+- [ ] Add summary output that makes unhealthy nodes obvious
+
+### M5 — Inventory and audit
+
+- [ ] Add `pictl inventory`
+- [ ] Report Pi model, serial number, RAM, storage, OS, kernel, architecture, and network interfaces
+- [ ] Add machine-readable output with `--json`
+- [ ] Track configuration drift across the fleet
+
+### M6 — Services and logs
+
+- [ ] Add `pictl service status <unit>`
+- [ ] Add `pictl service restart <unit>`
+- [ ] Add `pictl logs <unit>` using `journalctl`
+- [ ] Support `--since`, `--lines`, `--node`, and `--role`
+
+### M7 — Rolling maintenance
+
+- [ ] Add `pictl reboot`
+- [ ] Add `pictl reboot --rolling`
+- [ ] Add `pictl update --rolling`
+- [ ] Add confirmation prompts for disruptive operations
+
+### Optional modules
+
+- [ ] `pictl k3s install`
+- [ ] `pictl k3s status`
+- [ ] `pictl k3s kubeconfig`
+- [ ] `pictl docker ps`
+- [ ] `pictl monitoring install`
+- [ ] `pictl kiosk status`

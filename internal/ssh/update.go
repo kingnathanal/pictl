@@ -14,17 +14,17 @@ type UpdateResult struct {
 }
 
 func UpdateAll(nodes []config.Node, keyPath string) []UpdateResult {
-	resultCh := make(chan UpdateResult, len(nodes))
+	results := make([]UpdateResult, 0, len(nodes))
 
 	for _, node := range nodes {
-		go func(n config.Node) {
-			resultCh <- runUpdate(n, keyPath)
-		}(node)
-	}
-
-	results := make([]UpdateResult, 0, len(nodes))
-	for range nodes {
-		results = append(results, <-resultCh)
+		fmt.Printf(" Updating %-15s ...\n", node.Name)
+		r := runUpdate(node, keyPath)
+		if r.Error != nil {
+			fmt.Printf("  ❌ %s-15s failed: %v\n", node.Name, r.Error)
+		} else {
+			fmt.Printf("  ✅ %-15s done\n", node.Name)
+		}
+		results = append(results, r)
 	}
 	
 	return results
@@ -37,7 +37,7 @@ func runUpdate(node config.Node, keyPath string) UpdateResult {
 	}
 	defer client.Close()
 
-	out, err := RunCommand(client, "sudo apt update && sudo apt upgrade -y")
+	out, err := RunCommand(client, "sudo DEBIAN_FRONTEND=noninteractive apt update && sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y")
 	return UpdateResult{Node: node, Output: out, Error: err}
 }
 

@@ -11,13 +11,14 @@ import (
 var pingCMD = &cobra.Command{
 	Use:   "ping",
 	Short: "Ping all nodes in the cluster to check connectivity",
-	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.LoadConfig("cluster.yaml")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cfg, err := config.LoadConfig(getConfigPath())
 		if err != nil {
-			fmt.Printf("Error loading config: %v\n", err)
-			return
+			return fmt.Errorf("loading config: %w", err)
 		}
 		ssh.PingAll(cfg.Nodes)
+		
+		return nil
 	},
 }
 
