@@ -135,6 +135,19 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 - [ ] Add total and per-node timing output for long-running commands like `update`
 - [ ] Add `pictl update --parallel` for intentionally concurrent updates
 
+### M3.1 — Orchestration & DX Improvements
+
+- [ ] Support `PICTL_SSH_KEY` environment variable for global key path
+- [ ] Support custom SSH ports in `cluster.yaml` (defaulting to 22)
+- [ ] Implement a unified internal "Fleet Runner" to reduce boilerplate for concurrent operations
+- [ ] Refactor `ping.go` to use the channel pattern for consistency with `stats.go`
+
+### M3.2 — Output & Scripting
+
+- [ ] Add machine-readable output with `--json` for all commands
+- [ ] Add `--quiet` or `--no-header` flags for cleaner scripting integration
+- [ ] Ensure `exec` and `update` return appropriate exit codes based on fleet success
+
 ### M3.5 — Fleet config management
 
 - [ ] Add `pictl node list`
@@ -151,6 +164,12 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 - [ ] Detect undervoltage and throttling with `vcgencmd get_throttled`
 - [ ] Detect low disk space, high temperature, failed systemd units, and reboot-required state
 - [ ] Add summary output that makes unhealthy nodes obvious
+
+### M4.1 — Advanced Pi Health
+
+- [ ] Detect "Reboot Required" state via `/var/run/reboot-required`
+- [ ] Report detailed throttling history (undervoltage vs overheating)
+- [ ] Check for failed or degraded systemd units across the fleet
 
 ### M5 — Inventory and audit
 

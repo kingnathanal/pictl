@@ -17,7 +17,8 @@ var infoCMD = &cobra.Command{
 			return fmt.Errorf("loading config: %w", err)
 		}
 		fmt.Println("Collecting node stats...")
-		results := internalssh.CollectAll(cfg.Nodes, cfg.SSHKeyPath)
+		nodes := config.FilterNodes(cfg.Nodes, targetNode, targetRole)
+		results := internalssh.CollectAll(nodes, cfg.SSHKeyPath)
 		internalssh.PrintStatsTable(results)
 
 		return nil

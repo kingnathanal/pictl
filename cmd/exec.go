@@ -8,23 +8,25 @@ import (
 	"github.com/kingnathanal/pictl/internal/ssh"
 )
 
-var updateCMD = &cobra.Command{
-	Use:   "update",
-	Short: "Run apt update && apt upgrade on all cluster nodes",
+
+var execCMD = &cobra.Command{
+	Use:   "exec [command]",
+	Short: "Run an arbitrary shell command on all cluster nodes",
+	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.LoadConfig(getConfigPath())
 		if err != nil {
 			return fmt.Errorf("loading config: %w", err)
 		}
-		fmt.Println("Running apt update on all nodes...")
+		command := args[0]
 		nodes := config.FilterNodes(cfg.Nodes, targetNode, targetRole)
-		results := ssh.UpdateAll(nodes, cfg.SSHKeyPath)
-		ssh.PrintUpdateResults(results)
+		results := ssh.ExecAll(nodes, cfg.SSHKeyPath, command)
+		ssh.PrintExecResults(results)
 
 		return nil
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(updateCMD)
+	rootCmd.AddCommand(execCMD)
 }

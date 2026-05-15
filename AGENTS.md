@@ -1,4 +1,4 @@
-# AGENT.md — pictl
+# AGENTS.md — pictl
 
 This file describes the project purpose, architecture, conventions, and roadmap for AI agents and contributors working on this codebase.
 
@@ -219,6 +219,17 @@ New Go concepts introduced: sequential orchestration, readiness polling, user co
 | Milestone | Concepts Introduced |
 |---|---|
 | M1 — Ping | Structs, goroutines, `sync.WaitGroup`, YAML parsing, Cobra CLI |
+| M2 — Node stats | Channels, SSH client, string/strconv parsing, import aliasing, error wrapping, two-snapshot CPU delta |
+| M2 — Update | Sequential vs concurrent tradeoffs, `DEBIAN_FRONTEND`, exit code handling |
+| M3 — Targeting + exec | CLI flags, filtering slices by field, concurrent remote command execution |
+| M3.1 — Orchestration | Unified workers, environment binding, consistent concurrency |
+| M3.2 — Scripting | JSON marshalling, global flag management, exit code standards |
+| M4 — Health checks | Typed checks, severity levels, parsing system command output |
+| M4.1 — Advanced Health | Multi-stage command execution, existence checks |
+| M5 — Inventory | JSON output, normalized data models, audit-friendly records |
+| M6 — Services + logs | Nested commands, systemd workflows, bounded log retrieval |
+| M7 — Rolling maintenance | Sequential orchestration, readiness checks, confirmation prompts |
+tructs, goroutines, `sync.WaitGroup`, YAML parsing, Cobra CLI |
 | M2 — Node stats | Channels, SSH client, string/strconv parsing, import aliasing, error wrapping, two-snapshot CPU delta |
 | M2 — Update | Sequential vs concurrent tradeoffs, `DEBIAN_FRONTEND`, exit code handling |
 | M3 — Targeting + exec | CLI flags, filtering slices by field, concurrent remote command execution |

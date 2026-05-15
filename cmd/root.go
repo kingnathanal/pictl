@@ -8,6 +8,8 @@ import (
 )
 
 var configPath string
+var targetNode string
+var targetRole string
 
 var rootCmd = &cobra.Command{
 	Use:   "pictl",
@@ -16,6 +18,8 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Path to cluster configuration file")
+	rootCmd.PersistentFlags().StringVar(&targetNode, "node", "", "Target a specific node by name")
+	rootCmd.PersistentFlags().StringVar(&targetRole, "role", "", "Target nodes by role (e.g. 'web', 'db')")
 }
 
 func Execute() {

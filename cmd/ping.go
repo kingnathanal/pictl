@@ -16,7 +16,8 @@ var pingCMD = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("loading config: %w", err)
 		}
-		ssh.PingAll(cfg.Nodes)
+		nodes := config.FilterNodes(cfg.Nodes, targetNode, targetRole)
+		ssh.PingAll(nodes)
 		
 		return nil
 	},

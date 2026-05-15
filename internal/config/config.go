@@ -27,3 +27,28 @@ func LoadConfig(path string) (*Config, error) {
 	err = yaml.Unmarshal(data, &cfg)
 	return &cfg, err
 }
+
+func FilterNodes(nodes []Node, name, role string) []Node {
+	if name == "" && role == "" {
+		return nodes
+	}
+
+	if name != "" {
+		for _, node := range nodes {
+			if node.Name == name {
+				return []Node{node}
+			}
+		}
+		return []Node{}
+	}
+
+	if role != "" {
+		for _, node := range nodes {
+			if node.Role == role {
+				return []Node{node}
+			}
+		}
+		return []Node{}
+	}
+	return []Node{}
+}
