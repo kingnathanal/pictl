@@ -128,10 +128,10 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 
 - [x] Add global config path handling with `--config` and `PICTL_CONFIG`
 - [x] Use Cobra `RunE` so command errors return cleanly to the root command
-- [ ] Add `--node` targeting for a single Pi
-- [ ] Add `--role` targeting for groups of Pis
-- [ ] Add `pictl exec` to run a command across selected nodes
-- [ ] Add safer command output formatting for multi-node results
+- [x] Add `--node` targeting for a single Pi
+- [x] Add `--role` targeting for groups of Pis
+- [x] Add `pictl exec` to run a command across selected nodes
+- [x] Add safer command output formatting for multi-node results
 - [ ] Add total and per-node timing output for long-running commands like `update`
 - [ ] Add `pictl update --parallel` for intentionally concurrent updates
 
@@ -160,10 +160,13 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 
 ### M4 — Fleet health checks
 
-- [ ] Add `pictl check` for pass/warn/fail health checks
-- [ ] Detect undervoltage and throttling with `vcgencmd get_throttled`
-- [ ] Detect low disk space, high temperature, failed systemd units, and reboot-required state
+- [x] Add `pictl check` for pass/warn/fail health checks
+- [x] Detect undervoltage and throttling with `vcgencmd get_throttled`
+- [x] Detect low disk space and high temperature
+- [ ] Detect failed systemd units
+- [ ] Detect reboot-required state
 - [ ] Add summary output that makes unhealthy nodes obvious
+- [ ] Add `--sort` flag to control output order (alphabetical by default, options: name, ip, role, status)
 
 ### M4.1 — Advanced Pi Health
 

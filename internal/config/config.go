@@ -3,6 +3,7 @@ package config
 import (
 	"gopkg.in/yaml.v3"
 	"os"
+	"sort"
 )
 
 type Node struct {
@@ -51,4 +52,11 @@ func FilterNodes(nodes []Node, name, role string) []Node {
 		return []Node{}
 	}
 	return []Node{}
+}
+
+func SortNodes(nodes []Node) []Node { 
+	sort.Slice(nodes, func(i, j int) bool {
+		return nodes[i].Name < nodes[j].Name
+	})
+	return nodes
 }

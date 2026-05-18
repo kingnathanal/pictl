@@ -35,7 +35,7 @@ func execNode(node config.Node, keyPath string, command string) ExecResult {
 
 func PrintExecResults(results []ExecResult) {
 	for _, res := range results {
-		fmt.Printf("\n%-5s %-15s %-2s %-s\n", "Node:", res.Node.Name, "IP:", res.Node.IP)
+		fmt.Printf("\nNode: %s (IP: %s)\n", res.Node.Name, res.Node.IP)
 		fmt.Println("------------------------------------------------------")
 		if res.Err != nil {
 			fmt.Printf("Error: %v\n", res.Err)
