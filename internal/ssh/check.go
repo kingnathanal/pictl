@@ -37,12 +37,11 @@ func checkNode(node config.Node, keyPath string) NodeReport {
 		}}
 	}
 	checks := []CheckResult{
-		//checkSSH(client),
+		checkFailedUnits(client),
 		checkDiskSpace(client),
-		//checkMemory(client),
-		//checkCPU(client),
 		checkTemperature(client),
 		checkThrottling(client),
+		checkRebootRequired(client),
 	}
 	client.Close()
 	return NodeReport{Node: node, Checks: checks}
@@ -111,6 +110,32 @@ func checkThrottling(client *gossh.Client) CheckResult {
 	}
 
 	return CheckResult{Name: "Throttling", Status: "FAIL", Message: fmt.Sprintf("Throttling detected (0x%X)", throttleVal)}
+}
+
+func checkFailedUnits(client *gossh.Client) CheckResult { 
+	out, err := RunCommand(client, "systemctl --failed --no-legend")
+	if err != nil {
+		return CheckResult{Name: "Failed Units", Status: "FAIL", Message: err.Error()}
+	}
+
+	if strings.TrimSpace(out) == "" { 
+		return CheckResult{Name: "Failed Units", Status: "PASS", Message: "No failed units"}
+	}
+
+	return CheckResult{Name: "Failed Units", Status: "FAIL", Message: strings.TrimSpace(out)}
+}
+
+func checkRebootRequired(client *gossh.Client) CheckResult { 
+	out, err := RunCommand(client, "test -f /var/run/reboot-required && echo 'yes' || echo 'no'")
+	if err != nil {
+		return CheckResult{Name: "Reboot Required", Status: "FAIL", Message: err.Error()}
+	}
+
+	if strings.TrimSpace(out) == "yes" { 
+		return CheckResult{Name: "Reboot Required", Status: "WARN", Message: "Reboot is required"}
+	}
+
+	return CheckResult{Name: "Reboot Required", Status: "PASS", Message: "No reboot required"}
 }
 
 func PrintCheckResults(reports []NodeReport) {

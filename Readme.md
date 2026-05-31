@@ -163,8 +163,8 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 - [x] Add `pictl check` for pass/warn/fail health checks
 - [x] Detect undervoltage and throttling with `vcgencmd get_throttled`
 - [x] Detect low disk space and high temperature
-- [ ] Detect failed systemd units
-- [ ] Detect reboot-required state
+- [x] Detect failed systemd units
+- [x] Detect reboot-required state
 - [ ] Add summary output that makes unhealthy nodes obvious
 - [ ] Add `--sort` flag to control output order (alphabetical by default, options: name, ip, role, status)
 
@@ -173,6 +173,15 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 - [ ] Detect "Reboot Required" state via `/var/run/reboot-required`
 - [ ] Report detailed throttling history (undervoltage vs overheating)
 - [ ] Check for failed or degraded systemd units across the fleet
+
+### M4.2 — Live fleet monitor
+
+- [ ] Add `pictl top` — real-time fleet view using `top -bn1` over SSH, refreshed on an interval
+- [ ] Add `pictl watch <command>` — re-run any pictl command on a set interval with terminal refresh
+- [ ] Flag runaway processes consuming above a threshold (e.g. >80% CPU) per node
+- [ ] Support `--interval` flag to control refresh rate (default: 5s)
+
+New Go concepts introduced: tickers, terminal control sequences, looping concurrent SSH collection.
 
 ### M5 — Inventory and audit
 
