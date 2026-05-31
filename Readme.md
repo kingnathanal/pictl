@@ -120,6 +120,66 @@ pi-worker-01    192.168.1.104    pi-worker-01 Debian GNU/Linux 13         0.2%  
 
 ---
 
+### `pictl update`
+Run `apt update && apt upgrade -y` on each node sequentially to avoid dpkg lock conflicts.
+
+```bash
+./pictl update
+./pictl update --node pi03-lan
+./pictl update --role worker
+```
+
+---
+
+### `pictl exec`
+Run an arbitrary shell command across selected nodes.
+
+```bash
+./pictl exec "uname -a"
+./pictl exec --node pi03-lan "hostname"
+./pictl exec --role worker "uptime"
+```
+
+```
+Node: pi03-lan        IP: 192.168.1.134
+--------------------------------------------------
+pi03-lan
+```
+
+---
+
+### `pictl check`
+Run health checks on each node and report pass/warn/fail results. Checks: disk space, CPU temperature, throttling, failed systemd units, and reboot-required state.
+
+```bash
+./pictl check
+./pictl check --node pi03-lan
+./pictl check --role worker
+```
+
+```
+Node: pi00-wifi (IP: 192.168.1.126)
+--------------------------------------------------
+✅ Failed Units: No failed units
+✅ Disk Space: 10% used
+✅ Temperature: 33.60°C
+✅ Throttling: No throttling detected
+✅ Reboot Required: No reboot required
+```
+
+---
+
+### Targeting flags
+All commands support `--node` and `--role` flags to target a subset of the fleet.
+
+```bash
+./pictl ping --node pi03-lan
+./pictl info --role worker
+./pictl check --node pi05-lan
+```
+
+---
+
 ## Roadmap
 
 `pictl` is intended to stay useful for any Raspberry Pi running Raspberry Pi OS or Debian with SSH enabled. K3s support can be added later as an optional module, but the core tool should remain focused on generic fleet operations.
