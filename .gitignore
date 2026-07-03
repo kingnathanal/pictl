@@ -6,6 +6,9 @@
 *.exe
 *.out
 
+# Node.js diagnostic reports
+report.*.json
+
 # Environment / secrets
 .env
 *.pem
