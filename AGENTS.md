@@ -66,15 +66,21 @@ pictl/
 │   ├── root.go             # Root command + Execute()
 │   ├── ping.go             # pictl ping
 │   ├── info.go             # pictl info
-│   └── update.go           # pictl update
+│   ├── update.go           # pictl update
+│   ├── exec.go             # pictl exec
+│   ├── check.go            # pictl check
+│   └── skill.go            # pictl skill install
 ├── internal/               # All business logic — not importable outside module
 │   ├── config/
 │   │   └── config.go       # cluster.yaml loader, Config + Node structs
-│   └── ssh/
-│       ├── common.go       # NewClient(), RunCommand() — shared SSH primitives
-│       ├── ping.go         # TCP reachability check, PingAll(), printTable()
-│       ├── stats.go        # Node metrics collection, CollectAll(), PrintStatsTable()
-│       └── update.go       # Apt update logic, UpdateAll(), PrintUpdateResults()
+│   ├── ssh/
+│   │   ├── common.go       # NewClient(), RunCommand() — shared SSH primitives
+│   │   ├── ping.go         # TCP reachability check, PingAll(), printTable()
+│   │   ├── stats.go        # Node metrics collection, CollectAll(), PrintStatsTable()
+│   │   └── update.go       # Apt update logic, UpdateAll(), PrintUpdateResults()
+│   └── skill/
+│       ├── skill.go        # Embedded skill content and installer
+│       └── templates/pictl/SKILL.md
 ├── cluster.yaml            # Node definitions — source of truth for the fleet
 ├── go.mod
 ├── go.sum
@@ -110,6 +116,14 @@ pictl/
 - `cluster.yaml` is the single source of truth for node IPs, names, roles, SSH user, and key path
 - Loaded at command runtime via `config.LoadConfig()`
 - `cluster.yaml` should be `.gitignore`'d if sensitive details are added in the future
+
+### AI skill maintenance
+- The bundled user-facing skill lives at `internal/skill/templates/pictl/SKILL.md`
+- `internal/skill.Version` is the authoritative skill version and must match the version in the skill frontmatter
+- Installed skills are tracked by `.pictl-skill.json`, which records the managed version and SHA-256 checksum used for safe upgrades
+- When a command, flag, targeting rule, configuration behavior, or safety requirement changes, review and update the bundled skill in the same change
+- Increment the skill version for every skill content change: patch for corrections, minor for new commands or workflows, and major for incompatible behavior
+- Keep the skill focused on using `pictl`; repository development guidance belongs in this `AGENTS.md` file
 
 ---
 

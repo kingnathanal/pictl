@@ -9,6 +9,7 @@ A lightweight CLI tool written in Go for managing a fleet of Raspberry Pis over 
 - **Ping sweep** — check SSH reachability across all nodes concurrently
 - **Node stats** — pull CPU usage, CPU temp, memory, disk, hostname, and OS info from every Pi in one shot
 - **Apt update** — run `apt update && apt upgrade` across the fleet
+- **AI skill installer** — teach supported AI coding agents how to operate `pictl` safely
 
 ---
 
@@ -20,15 +21,21 @@ pictl/
 │   ├── root.go          # Cobra root command
 │   ├── ping.go          # pictl ping
 │   ├── info.go          # pictl info
-│   └── update.go        # pictl update
+│   ├── update.go        # pictl update
+│   ├── exec.go          # pictl exec
+│   ├── check.go         # pictl check
+│   └── skill.go         # pictl skill install
 ├── internal/
 │   ├── config/
 │   │   └── config.go    # cluster.yaml loader
-│   └── ssh/
-│       ├── client.go    # SSH connection + command runner
-│       ├── ping.go      # TCP reachability check
-│       ├── stats.go     # Node metrics collection
-│       └── update.go    # Apt update logic
+│   ├── ssh/
+│   │   ├── client.go    # SSH connection + command runner
+│   │   ├── ping.go      # TCP reachability check
+│   │   ├── stats.go     # Node metrics collection
+│   │   └── update.go    # Apt update logic
+│   └── skill/
+│       ├── skill.go     # Embedded skill installer
+│       └── templates/pictl/SKILL.md
 ├── cluster.yaml         # Fleet node definitions
 ├── go.mod
 ├── go.sum
@@ -180,6 +187,25 @@ All commands support `--node` and `--role` flags to target a subset of the fleet
 
 ---
 
+### `pictl skill install`
+Install the bundled `pictl` AI skill into the current project's supported skill directories:
+
+- `.agents/skills/pictl/SKILL.md`
+- `.claude/skills/pictl/SKILL.md`
+- `.codex/skills/pictl/SKILL.md`
+
+Each installation includes a `.pictl-skill.json` manifest containing the installed version and SHA-256 checksum.
+
+```bash
+./pictl skill install
+./pictl skill status
+./pictl skill install --force
+```
+
+Running the command again leaves matching files unchanged. Older managed skills are upgraded automatically when their checksum confirms they have not been edited. Modified, unmanaged, inconsistent, or newer skills are protected unless `--force` is provided.
+
+---
+
 ## Roadmap
 
 `pictl` is intended to stay useful for any Raspberry Pi running Raspberry Pi OS or Debian with SSH enabled. K3s support can be added later as an optional module, but the core tool should remain focused on generic fleet operations.
@@ -281,3 +307,11 @@ New Go concepts introduced: tickers, terminal control sequences, looping concurr
 - [ ] `pictl docker ps`
 - [ ] `pictl monitoring install`
 - [ ] `pictl kiosk status`
+
+### AI integrations
+
+- [x] Add `pictl skill install`
+- [x] Install the bundled skill for Agents, Claude, and Codex project directories
+- [x] Add manifest-backed automatic upgrades and modification protection
+- [x] Add `pictl skill status`
+- [ ] Add selectable installation targets

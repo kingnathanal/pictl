@@ -1,5 +1,5 @@
 # Binary
-pictl
+/pictl
 *.bin
 
 # Go build artifacts
