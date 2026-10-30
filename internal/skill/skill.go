@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	Version      = "0.2.1"
+	Version      = "0.2.2"
 	manifestName = ".pictl-skill.json"
 )
 
@@ -269,15 +269,18 @@ func writeAtomic(path string, data []byte) error {
 }
 
 func readOptional(path string) ([]byte, bool, error) {
-	data, err := os.ReadFile(path)
-	switch {
-	case err == nil:
-		return data, true, nil
-	case errors.Is(err, os.ErrNotExist):
+	// Check the entry itself so a dangling symlink is not treated as absent.
+	if _, err := os.Lstat(path); errors.Is(err, os.ErrNotExist) {
 		return nil, false, nil
-	default:
-		return nil, false, fmt.Errorf("reading %s: %w", path, err)
+	} else if err != nil {
+		return nil, false, fmt.Errorf("checking %s: %w", path, err)
 	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, true, fmt.Errorf("reading existing entry %s: %w", path, err)
+	}
+	return data, true, nil
 }
 
 func checksum(data []byte) string {

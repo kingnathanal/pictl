@@ -2,7 +2,7 @@
 name: pictl
 description: Use the pictl CLI to inspect, check, update, and run commands across a fleet of Raspberry Pis over SSH. Use when a user asks to operate or troubleshoot a Raspberry Pi fleet managed by pictl.
 metadata:
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # pictl
@@ -87,6 +87,8 @@ pictl skill install
 ```
 
 `skill status` reports whether each supported installation is current, missing, modified, unmanaged, or eligible for an automatic upgrade. `skill install` installs missing skills and safely upgrades older managed skills. Use `--force` only when the user intends to replace a modified, unmanaged, inconsistent, or newer installation.
+
+An existing `SKILL.md` or manifest symlink with a missing destination is reported as incomplete and preserved unless `--force` is supplied. Forced installation replaces the link itself and leaves its destination untouched.
 
 If installation fails while writing files, completed targets are listed before the error. Other targets may be missing or partially written; run `pictl skill status` to inspect all installations before retrying.
 
