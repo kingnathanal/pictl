@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	Version      = "0.2.0"
+	Version      = "0.2.1"
 	manifestName = ".pictl-skill.json"
 )
 
@@ -73,7 +73,7 @@ func InstallAll(baseDir string, force bool) ([]InstallResult, error) {
 	results := make([]InstallResult, 0, len(plans))
 	for _, plan := range plans {
 		if err := applyPlan(plan); err != nil {
-			return results, err
+			return results, fmt.Errorf("installation incomplete (%d of %d targets completed); run 'pictl skill status' to inspect all targets: %w", len(results), len(plans), err)
 		}
 		results = append(results, InstallResult{Path: plan.skillPath, Action: plan.action})
 	}

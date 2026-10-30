@@ -2,7 +2,7 @@
 name: pictl
 description: Use the pictl CLI to inspect, check, update, and run commands across a fleet of Raspberry Pis over SSH. Use when a user asks to operate or troubleshoot a Raspberry Pi fleet managed by pictl.
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # pictl
@@ -22,6 +22,12 @@ Use `pictl` to manage Raspberry Pi OS or Debian nodes defined in `cluster.yaml`.
 By default, `pictl` reads `cluster.yaml` from the current directory. Use `--config <path>` or the `PICTL_CONFIG` environment variable to select another configuration file.
 
 Node definitions include a name, IP address, role, and SSH user. The role is an optional grouping label and is not limited to Kubernetes roles.
+
+### Current targeting and result limitations
+
+- `--role` currently selects only the first matching node. For group operations, read the configured node names and run each intended node explicitly with `--node`.
+- An unknown node or role can return no results without an error. Verify that the output includes every intended node.
+- Fleet commands can exit successfully despite per-node failures. Inspect their output and health results before reporting success.
 
 ## Commands
 
@@ -60,7 +66,7 @@ pictl update --node pi03-lan
 pictl update --role worker
 ```
 
-Prefer one node first, verify its health, and then continue with a larger target.
+Prefer one node first, verify its health, and then continue through the remaining intended nodes using explicit `--node` targets.
 
 ### Remote command execution
 
@@ -81,6 +87,8 @@ pictl skill install
 ```
 
 `skill status` reports whether each supported installation is current, missing, modified, unmanaged, or eligible for an automatic upgrade. `skill install` installs missing skills and safely upgrades older managed skills. Use `--force` only when the user intends to replace a modified, unmanaged, inconsistent, or newer installation.
+
+If installation fails while writing files, completed targets are listed before the error. Other targets may be missing or partially written; run `pictl skill status` to inspect all installations before retrying.
 
 ## Operating workflow
 

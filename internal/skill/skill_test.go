@@ -199,15 +199,12 @@ func writeManagedSkill(t *testing.T, baseDir, target, version string, skillData 
 
 func legacyVersion010Content(t *testing.T) []byte {
 	t.Helper()
-	legacy := bytes.Replace(content, []byte(`version: "0.2.0"`), []byte(`version: "0.1.0"`), 1)
-	start := bytes.Index(legacy, []byte("### AI skill management\n"))
-	end := bytes.Index(legacy, []byte("## Operating workflow\n"))
-	if start == -1 || end == -1 || end <= start {
-		t.Fatal("could not reconstruct legacy v0.1.0 skill content")
+	legacy, err := os.ReadFile(filepath.Join("testdata", "skill-v0.1.0.md"))
+	if err != nil {
+		t.Fatalf("reading legacy v0.1.0 fixture: %v", err)
 	}
-	legacy = append(legacy[:start], legacy[end:]...)
 	if checksum(legacy) != "68a342cc5af9d3b0e05c739c1f8b21c0d622ca38bbcd06051125e550dc6a177f" {
-		t.Fatal("reconstructed legacy v0.1.0 checksum changed")
+		t.Fatal("legacy v0.1.0 fixture checksum changed")
 	}
 	return legacy
 }

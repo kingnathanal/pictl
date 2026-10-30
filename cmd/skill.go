@@ -27,13 +27,14 @@ var skillInstallCMD = &cobra.Command{
 		}
 
 		results, err := skill.InstallAll(workingDir, forceSkillInstall)
-		if err != nil {
-			return fmt.Errorf("installing pictl skill: %w", err)
+		if len(results) > 0 || err == nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "pictl skill v%s\n", skill.Version)
 		}
-
-		fmt.Fprintf(cmd.OutOrStdout(), "pictl skill v%s\n", skill.Version)
 		for _, result := range results {
 			fmt.Fprintf(cmd.OutOrStdout(), "%-9s %s\n", result.Action, result.Path)
+		}
+		if err != nil {
+			return fmt.Errorf("installing pictl skill: %w", err)
 		}
 		return nil
 	},

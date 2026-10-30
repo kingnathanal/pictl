@@ -204,6 +204,8 @@ Each installation includes a `.pictl-skill.json` manifest containing the install
 
 Running the command again leaves matching files unchanged. Older managed skills are upgraded automatically when their checksum confirms they have not been edited. Modified, unmanaged, inconsistent, or newer skills are protected unless `--force` is provided.
 
+If a filesystem error interrupts installation, completed targets are listed before the error. Other targets may be missing or partially written. Run `pictl skill status` to inspect all installations before retrying.
+
 ---
 
 ## Roadmap
