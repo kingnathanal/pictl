@@ -1,10 +1,13 @@
 # Binary
-pictl
+/pictl
 *.bin
 
 # Go build artifacts
 *.exe
 *.out
+
+# Node.js diagnostic reports
+report.*.json
 
 # Environment / secrets
 .env

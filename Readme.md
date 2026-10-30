@@ -9,6 +9,7 @@ A lightweight CLI tool written in Go for managing a fleet of Raspberry Pis over 
 - **Ping sweep** — check SSH reachability across all nodes concurrently
 - **Node stats** — pull CPU usage, CPU temp, memory, disk, hostname, and OS info from every Pi in one shot
 - **Apt update** — run `apt update && apt upgrade` across the fleet
+- **AI skill installer** — teach supported AI coding agents how to operate `pictl` safely
 
 ---
 
@@ -20,15 +21,21 @@ pictl/
 │   ├── root.go          # Cobra root command
 │   ├── ping.go          # pictl ping
 │   ├── info.go          # pictl info
-│   └── update.go        # pictl update
+│   ├── update.go        # pictl update
+│   ├── exec.go          # pictl exec
+│   ├── check.go         # pictl check
+│   └── skill.go         # pictl skill install
 ├── internal/
 │   ├── config/
 │   │   └── config.go    # cluster.yaml loader
-│   └── ssh/
-│       ├── client.go    # SSH connection + command runner
-│       ├── ping.go      # TCP reachability check
-│       ├── stats.go     # Node metrics collection
-│       └── update.go    # Apt update logic
+│   ├── ssh/
+│   │   ├── client.go    # SSH connection + command runner
+│   │   ├── ping.go      # TCP reachability check
+│   │   ├── stats.go     # Node metrics collection
+│   │   └── update.go    # Apt update logic
+│   └── skill/
+│       ├── skill.go     # Embedded skill installer
+│       └── templates/pictl/SKILL.md
 ├── cluster.yaml         # Fleet node definitions
 ├── go.mod
 ├── go.sum
@@ -180,6 +187,29 @@ All commands support `--node` and `--role` flags to target a subset of the fleet
 
 ---
 
+### `pictl skill install`
+Install the bundled `pictl` AI skill into the current project's supported skill directories:
+
+- `.agents/skills/pictl/SKILL.md`
+- `.claude/skills/pictl/SKILL.md`
+- `.codex/skills/pictl/SKILL.md`
+
+Each installation includes a `.pictl-skill.json` manifest containing the installed version and SHA-256 checksum.
+
+```bash
+./pictl skill install
+./pictl skill status
+./pictl skill install --force
+```
+
+Running the command again leaves matching files unchanged. Older managed skills are upgraded automatically when their checksum confirms they have not been edited. Modified, unmanaged, inconsistent, or newer skills are protected unless `--force` is provided.
+
+Dangling `SKILL.md` or manifest symlinks are reported as incomplete and require `--force` to replace. Forced replacement replaces the link itself without writing to its missing destination.
+
+If a filesystem error interrupts installation, completed targets are listed before the error. Other targets may be missing or partially written. Run `pictl skill status` to inspect all installations before retrying.
+
+---
+
 ## Roadmap
 
 `pictl` is intended to stay useful for any Raspberry Pi running Raspberry Pi OS or Debian with SSH enabled. K3s support can be added later as an optional module, but the core tool should remain focused on generic fleet operations.
@@ -243,10 +273,22 @@ All commands support `--node` and `--role` flags to target a subset of the fleet
 
 New Go concepts introduced: tickers, terminal control sequences, looping concurrent SSH collection.
 
+### M4.3 — Power and cooling diagnostics
+
+- [ ] Add `pictl power status` — decode the persistent `vcgencmd get_throttled` bits (undervoltage occurred, throttling occurred), beyond the current-state bits `check` already reports
+- [ ] Report Pi 5 PMIC rail voltage/current via `vcgencmd pmic_read_adc` where available
+- [ ] Add `pictl cooling status` — fan RPM, active cooling level, and thermal trip points for PoE HAT / official fan nodes
+- [ ] Add `pictl clock status` — RTC presence, NTP sync state, and clock drift between each node and the controller
+
+New Go concepts introduced: bitmask decoding into typed flags, sysfs globbing across multiple small files, time drift calculations with `time.Duration`.
+
 ### M5 — Inventory and audit
 
 - [ ] Add `pictl inventory`
 - [ ] Report Pi model, serial number, RAM, storage, OS, kernel, architecture, and network interfaces
+- [ ] Decode the `/proc/cpuinfo` revision code into exact model, RAM size, and board revision for mixed Pi 4/5 fleets
+- [ ] Report bootloader EEPROM version and configured boot order (SD/USB/NVMe) via `rpi-eeprom-config` / `vcgencmd bootloader_version`, flagging drift across nodes
+- [ ] Report storage health: read-only root detection, SD card corruption signals, and NVMe/SSD SMART status where available
 - [ ] Add machine-readable output with `--json`
 - [ ] Track configuration drift across the fleet
 
@@ -262,6 +304,7 @@ New Go concepts introduced: tickers, terminal control sequences, looping concurr
 - [ ] Add `pictl reboot`
 - [ ] Add `pictl reboot --rolling`
 - [ ] Add `pictl update --rolling`
+- [ ] Add `pictl overlay status|enable|disable` — audit and toggle the Pi read-only overlay filesystem (changes held in RAM) for reliability-critical nodes; a write command requiring sequential execution, a confirmation prompt, and a reboot to apply
 - [ ] Add confirmation prompts for disruptive operations
 
 ### M8 — Discovery and auth improvements
@@ -281,3 +324,12 @@ New Go concepts introduced: tickers, terminal control sequences, looping concurr
 - [ ] `pictl docker ps`
 - [ ] `pictl monitoring install`
 - [ ] `pictl kiosk status`
+- [ ] `pictl config audit` — audit I2C/SPI/1-Wire/serial-console enablement (`raspi-config nonint get_*`) across the fleet to catch interface drift before attaching sensors or reproducing a node setup
+
+### AI integrations
+
+- [x] Add `pictl skill install`
+- [x] Install the bundled skill for Agents, Claude, and Codex project directories
+- [x] Add manifest-backed automatic upgrades and modification protection
+- [x] Add `pictl skill status`
+- [ ] Add selectable installation targets
