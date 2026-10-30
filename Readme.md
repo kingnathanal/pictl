@@ -269,10 +269,22 @@ Running the command again leaves matching files unchanged. Older managed skills 
 
 New Go concepts introduced: tickers, terminal control sequences, looping concurrent SSH collection.
 
+### M4.3 — Power and cooling diagnostics
+
+- [ ] Add `pictl power status` — decode the persistent `vcgencmd get_throttled` bits (undervoltage occurred, throttling occurred), beyond the current-state bits `check` already reports
+- [ ] Report Pi 5 PMIC rail voltage/current via `vcgencmd pmic_read_adc` where available
+- [ ] Add `pictl cooling status` — fan RPM, active cooling level, and thermal trip points for PoE HAT / official fan nodes
+- [ ] Add `pictl clock status` — RTC presence, NTP sync state, and clock drift between each node and the controller
+
+New Go concepts introduced: bitmask decoding into typed flags, sysfs globbing across multiple small files, time drift calculations with `time.Duration`.
+
 ### M5 — Inventory and audit
 
 - [ ] Add `pictl inventory`
 - [ ] Report Pi model, serial number, RAM, storage, OS, kernel, architecture, and network interfaces
+- [ ] Decode the `/proc/cpuinfo` revision code into exact model, RAM size, and board revision for mixed Pi 4/5 fleets
+- [ ] Report bootloader EEPROM version and configured boot order (SD/USB/NVMe) via `rpi-eeprom-config` / `vcgencmd bootloader_version`, flagging drift across nodes
+- [ ] Report storage health: read-only root detection, SD card corruption signals, and NVMe/SSD SMART status where available
 - [ ] Add machine-readable output with `--json`
 - [ ] Track configuration drift across the fleet
 
@@ -288,6 +300,7 @@ New Go concepts introduced: tickers, terminal control sequences, looping concurr
 - [ ] Add `pictl reboot`
 - [ ] Add `pictl reboot --rolling`
 - [ ] Add `pictl update --rolling`
+- [ ] Add `pictl overlay status|enable|disable` — audit and toggle the Pi read-only overlay filesystem (changes held in RAM) for reliability-critical nodes; a write command requiring sequential execution, a confirmation prompt, and a reboot to apply
 - [ ] Add confirmation prompts for disruptive operations
 
 ### M8 — Discovery and auth improvements
@@ -307,6 +320,7 @@ New Go concepts introduced: tickers, terminal control sequences, looping concurr
 - [ ] `pictl docker ps`
 - [ ] `pictl monitoring install`
 - [ ] `pictl kiosk status`
+- [ ] `pictl config audit` — audit I2C/SPI/1-Wire/serial-console enablement (`raspi-config nonint get_*`) across the fleet to catch interface drift before attaching sensors or reproducing a node setup
 
 ### AI integrations
 

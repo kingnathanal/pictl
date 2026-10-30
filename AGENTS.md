@@ -190,14 +190,25 @@ New Go concepts introduced: shared command filters, CLI flags, command argument 
 
 New Go concepts introduced: check structs, severity levels, composable health checks, parsing command output into typed results.
 
+### M4.3 — Power and cooling diagnostics
+
+- Add `pictl power status` — decode the persistent `vcgencmd get_throttled` bits (undervoltage occurred, throttling occurred), not just the current-state bits `check` already reports; report Pi 5 PMIC rail voltage/current via `vcgencmd pmic_read_adc` where available
+- Add `pictl cooling status` — report fan RPM, active cooling level, and thermal trip points for nodes with a PoE HAT or official fan, so a silently dead fan is caught before it causes damage
+- Add `pictl clock status` — report RTC presence, NTP sync state, and clock drift between each node and the controller (headless Pis have no RTC by default and boot with a wrong clock after a power/network outage)
+
+New Go concepts introduced: bitmask decoding into typed flags, sysfs globbing across multiple small files, time drift calculations with `time.Duration`.
+
 ### M5 — Inventory and audit
 
 - Add `pictl inventory`
 - Report Pi model, serial number, RAM, storage, OS, kernel, architecture, and network interfaces
+- Decode the `/proc/cpuinfo` revision code into exact model, RAM size, and board revision — essential for a mixed Pi 4/5 fleet
+- Report bootloader EEPROM version and configured boot order (SD/USB/NVMe) via `rpi-eeprom-config` / `vcgencmd bootloader_version`, flagging drift across nodes
+- Report storage health: read-only root detection, SD card corruption signals, and NVMe/SSD SMART status where available
 - Add machine-readable output with `--json`
 - Track configuration drift across the fleet
 
-New Go concepts introduced: JSON output, richer data models, normalized inventory records.
+New Go concepts introduced: JSON output, richer data models, normalized inventory records, revision-code bit decoding, cross-node version/config comparison.
 
 ### M6 — Services and logs
 
@@ -213,6 +224,7 @@ New Go concepts introduced: subcommands with arguments, systemd-oriented workflo
 - Add `pictl reboot`
 - Add `pictl reboot --rolling`
 - Add `pictl update --rolling`
+- Add `pictl overlay status|enable|disable` — audit and toggle the Pi read-only overlay filesystem (changes held in RAM) for reliability-critical nodes; a write command requiring sequential execution, a confirmation prompt, and a reboot to apply
 - Add confirmation prompts for disruptive operations
 
 New Go concepts introduced: sequential orchestration, readiness polling, user confirmation, failure handling for disruptive operations.
@@ -225,6 +237,7 @@ New Go concepts introduced: sequential orchestration, readiness polling, user co
 - [ ] `pictl docker ps`
 - [ ] `pictl monitoring install`
 - [ ] `pictl kiosk status`
+- [ ] `pictl config audit` — audit I2C/SPI/1-Wire/serial-console enablement (`raspi-config nonint get_*`) across the fleet to catch interface drift before attaching sensors or reproducing a node setup
 
 ---
 
@@ -240,14 +253,7 @@ New Go concepts introduced: sequential orchestration, readiness polling, user co
 | M3.2 — Scripting | JSON marshalling, global flag management, exit code standards |
 | M4 — Health checks | Typed checks, severity levels, parsing system command output |
 | M4.1 — Advanced Health | Multi-stage command execution, existence checks |
-| M5 — Inventory | JSON output, normalized data models, audit-friendly records |
-| M6 — Services + logs | Nested commands, systemd workflows, bounded log retrieval |
-| M7 — Rolling maintenance | Sequential orchestration, readiness checks, confirmation prompts |
-tructs, goroutines, `sync.WaitGroup`, YAML parsing, Cobra CLI |
-| M2 — Node stats | Channels, SSH client, string/strconv parsing, import aliasing, error wrapping, two-snapshot CPU delta |
-| M2 — Update | Sequential vs concurrent tradeoffs, `DEBIAN_FRONTEND`, exit code handling |
-| M3 — Targeting + exec | CLI flags, filtering slices by field, concurrent remote command execution |
-| M4 — Health checks | Typed checks, severity levels, parsing system command output |
-| M5 — Inventory | JSON output, normalized data models, audit-friendly records |
+| M4.3 — Power + cooling | Bitmask decoding, sysfs globbing, time drift math |
+| M5 — Inventory | JSON output, normalized data models, audit-friendly records, revision-code decoding |
 | M6 — Services + logs | Nested commands, systemd workflows, bounded log retrieval |
 | M7 — Rolling maintenance | Sequential orchestration, readiness checks, confirmation prompts |
