@@ -212,124 +212,128 @@ If a filesystem error interrupts installation, completed targets are listed befo
 
 ## Roadmap
 
-`pictl` is intended to stay useful for any Raspberry Pi running Raspberry Pi OS or Debian with SSH enabled. K3s support can be added later as an optional module, but the core tool should remain focused on generic fleet operations.
+The v0.1.0 MVP promise is: **Connect your existing Raspberry Pis and see their health from one terminal.**
 
-### M3 — Fleet targeting and command execution
+The release targets users with network access to SSH-enabled Raspberry Pi OS / Debian devices and an existing SSH key. OS imaging, enabling SSH, and provisioning keys remain prerequisites documented in the quickstart. The CLI runs on the controller; users do not need to install it on every Pi.
 
-- [x] Add global config path handling with `--config` and `PICTL_CONFIG`
-- [x] Use Cobra `RunE` so command errors return cleanly to the root command
-- [x] Add `--node` targeting for a single Pi
-- [x] Add `--role` targeting for groups of Pis
-- [x] Add `pictl exec` to run a command across selected nodes
-- [x] Add safer command output formatting for multi-node results
-- [ ] Add total and per-node timing output for long-running commands like `update`
-- [ ] Add `pictl update --parallel` for intentionally concurrent updates
+This is the canonical product roadmap. Checked items below describe existing capabilities, not a claim that the public MVP is release-ready. Unchecked commands and behaviors are planned and must not be treated as available today. All three MVP milestones and the release acceptance checks must be complete before v0.1.0.
 
-### M3.1 — Orchestration & DX Improvements
+### Existing foundation
 
-- [ ] Support `PICTL_SSH_KEY` environment variable for global key path
-- [ ] Support custom SSH ports in `cluster.yaml` (defaulting to 22)
-- [ ] Implement a unified internal "Fleet Runner" to reduce boilerplate for concurrent operations
-- [ ] Refactor `ping.go` to use the channel pattern for consistency with `stats.go`
+- [x] TCP reachability checks with `pictl ping`
+- [x] Node metrics with `pictl info`
+- [x] Basic health checks for disk space, temperature, throttling, failed systemd units, and reboot-required state
+- [x] Remote command execution with `pictl exec`
+- [x] Sequential apt maintenance with `pictl update`
+- [x] Configuration overrides through `--config` and `PICTL_CONFIG`
+- [x] `--node` targeting and an initial `--role` implementation; role completeness remains an MVP blocker below
+- [x] Bundled AI skill installation, status reporting, and manifest-backed upgrade protection
 
-### M3.2 — Output & Scripting
+### MVP 1 — First Pi onboarding
 
-- [ ] Add machine-readable output with `--json` for all commands
-- [ ] Add `--quiet` or `--no-header` flags for cleaner scripting integration
-- [ ] Ensure `exec` and `update` return appropriate exit codes based on fleet success
+Goal: reach a successful authenticated health check without hand-writing YAML.
 
-### M3.5 — Fleet config management
+- [ ] Add `pictl init` to create a valid empty configuration without overwriting existing files
+- [ ] Establish and document a predictable user configuration location outside the application checkout; preserve explicit `--config` / `PICTL_CONFIG` overrides and document compatibility with existing `cluster.yaml` files
+- [ ] Keep node definitions, SSH settings, and trusted host keys separate from the installed binary so upgrades preserve them
+- [ ] Add `pictl node add` with name, address, SSH user, key configuration, and optional role
+- [ ] Validate required fields, malformed configuration, and duplicate node names / addresses; reject invalid edits without damaging existing configuration
+- [ ] Add `pictl node list`, `pictl node update`, and `pictl node remove`, including changing an address after DHCP changes
+- [ ] Save configuration safely and require deliberate confirmation for destructive changes
+- [ ] Provide an explicit authenticated connection check during onboarding; distinguish network failure, unreadable / unsupported key, authentication failure, and host-key mismatch, with actionable next steps
+- [ ] Explain that `ping` only checks TCP reachability and does not verify authentication or Raspberry Pi identity
+- [ ] Guide users from adding a node to `pictl info --node <name>` and `pictl check --node <name>`
+- [ ] Document the supported key format and port-22 limitation; keep password auth, encrypted-key handling, and SSH agent integration out of the initial release
+- [ ] Write a complete quickstart covering prerequisites, installation, configuration, adding the first Pi, checking access, and troubleshooting; correct the placeholder clone URL and Go version requirement
 
-- [ ] Add `pictl node list`
-- [ ] Add `pictl node add`
-- [ ] Add duplicate validation for node name and IP address
-- [ ] Add `pictl node remove`
-- [ ] Add `pictl node update` for changing role, user, or IP address
-- [ ] Keep `cluster.yaml` as the source of truth while allowing commands to edit it
-- [ ] Optionally validate SSH reachability when adding a node
+### MVP 2 — Core reliability and safe operation
 
-### M4 — Fleet health checks
+Goal: users can trust which devices are selected and whether an operation succeeded.
 
-- [x] Add `pictl check` for pass/warn/fail health checks
-- [x] Detect undervoltage and throttling with `vcgencmd get_throttled`
-- [x] Detect low disk space and high temperature
-- [x] Detect failed systemd units
-- [x] Detect reboot-required state
-- [ ] Add summary output that makes unhealthy nodes obvious
-- [ ] Add `--sort` flag to control output order (alphabetical by default, options: name, ip, role, status)
+- [ ] Fix `--role` selection to include every matching node
+- [ ] Define and test combined `--node` / `--role` behavior; reject unknown targets and empty operational selections with useful errors
+- [ ] Validate configuration before connecting or running remote commands
+- [ ] Verify SSH host keys by default, support deliberate first-use trust, and reject unexpected key changes
+- [ ] Bound connection, authentication, and remote-command waits; allow users to cancel operations cleanly
+- [ ] Close SSH clients on every execution path and retain diagnostic command output when remote commands fail
+- [ ] Define and implement meaningful exit statuses for invalid input, connection / command failures, partial fleet failures, and failed health checks; distinguish warnings from failures
+- [ ] Print clear per-node errors and a fleet summary; avoid reporting failed or unavailable measurements as successful zero values
+- [ ] Show the selected nodes before `update`, require confirmation, and provide an explicit noninteractive confirmation option; handle sudo failures without hanging
+- [ ] Add focused tests for configuration, all matching role members, unknown / combined targets, SSH trust and authentication failures, timeouts, command output, and partial failures
+- [ ] Validate `ping`, `info`, `check`, and a harmless `exec` against representative supported devices; validate maintenance behavior in a disposable test environment
 
-### M4.1 — Advanced Pi Health
+### MVP 3 — Releases, installation, and upgrades
 
-- [ ] Detect "Reboot Required" state via `/var/run/reboot-required`
-- [ ] Report detailed throttling history (undervoltage vs overheating)
-- [ ] Check for failed or degraded systemd units across the fleet
+Goal: a user can install a named release, upgrade it, and recover without losing fleet configuration.
 
-### M4.2 — Live fleet monitor
+- [ ] Add `pictl --version` with the application release version and clearly labeled development builds
+- [ ] Adopt version tags starting at `v0.1.0`; document patch / minor conventions and compatibility expectations before v1.0
+- [ ] Add pull-request CI for build, tests, and vet; require passing checks on the release commit
+- [ ] Select and validate controller platforms, initially targeting Linux amd64 / arm64 and macOS arm64; publish support only for validated targets
+- [ ] Automate tagged builds and packaging with GitHub Actions and a release tool such as GoReleaser
+- [ ] Produce a draft GitHub Release containing versioned binaries, checksums, release notes, and installation instructions
+- [ ] Smoke-test packaged artifacts on supported targets, including reported version and first-Pi workflow, before publishing the release
+- [ ] Document checksum verification, installing to PATH, and the source-build alternative using the Go version required by `go.mod`
+- [ ] Document upgrading by replacing the binary, checking its version, listing saved nodes, and making a read-only connection check
+- [ ] Preserve existing configuration across upgrades; document compatibility and any explicit migration steps, with backups before incompatible changes
+- [ ] Document reinstalling the previous release and the configuration compatibility needed for rollback
+- [ ] Keep application and bundled AI skill versions distinct; explain refreshing installed skills with `pictl skill install` after upgrading the application
 
-- [ ] Add `pictl top` — real-time fleet view using `top -bn1` over SSH, refreshed on an interval
-- [ ] Add `pictl watch <command>` — re-run any pictl command on a set interval with terminal refresh
-- [ ] Flag runaway processes consuming above a threshold (e.g. >80% CPU) per node
-- [ ] Support `--interval` flag to control refresh rate (default: 5s)
+### v0.1.0 release acceptance
 
-New Go concepts introduced: tickers, terminal control sequences, looping concurrent SSH collection.
+- [ ] A new user with an SSH-enabled Pi and supported key can install a packaged release, initialize configuration, add the Pi, authenticate, and retrieve its health within ten minutes using only the quickstart
+- [ ] Adding a second Pi with the same role causes role-targeted commands to select both devices
+- [ ] Missing configuration, invalid targets, unreachable devices, authentication failures, and changed host keys produce actionable errors and documented exit statuses
+- [ ] Partial fleet failures remain visible in both output and exit status; maintenance requires deliberate confirmation
+- [ ] Upgrading from a release candidate preserves fleet configuration and trusted host keys; the documented rollback works with the tested configuration format
+- [ ] Release artifacts pass the published-platform smoke checks, and checksums, release notes, and installation / upgrade instructions are available
 
-### M4.3 — Power and cooling diagnostics
+### Next release — Discovery and easier authentication
 
-- [ ] Add `pictl power status` — decode the persistent `vcgencmd get_throttled` bits (undervoltage occurred, throttling occurred), beyond the current-state bits `check` already reports
-- [ ] Report Pi 5 PMIC rail voltage/current via `vcgencmd pmic_read_adc` where available
-- [ ] Add `pictl cooling status` — fan RPM, active cooling level, and thermal trip points for PoE HAT / official fan nodes
-- [ ] Add `pictl clock status` — RTC presence, NTP sync state, and clock drift between each node and the controller
+Discovery follows manual onboarding and reuses its validation and addition flow. It is not required for v0.1.0, and the initial release must not promise automatic Pi discovery.
 
-New Go concepts introduced: bitmask decoding into typed flags, sysfs globbing across multiple small files, time drift calculations with `time.Duration`.
+- [ ] Add `pictl discover --subnet <CIDR>` with bounded concurrency and timeouts for an explicitly selected network
+- [ ] Detect SSH candidates and show results before adding anything to configuration
+- [ ] Identify Raspberry Pis through authenticated SSH where possible; label unverified candidates as unknown rather than equating an open port with a Pi
+- [ ] Let users select candidates and add them through the existing onboarding flow with duplicate checks
+- [ ] Explain discovery limitations: SSH-disabled devices, inaccessible networks, and devices that cannot be authenticated
+- [ ] Add custom SSH ports consistently across configuration, discovery, ping, and SSH operations
+- [ ] Add SSH agent and passphrase-aware key support; consider optional password prompts without storing plaintext passwords
+- [ ] Consider `PICTL_SSH_KEY` as a documented key-path override
 
-### M5 — Inventory and audit
+### Later — Fleet usability and scripting
 
-- [ ] Add `pictl inventory`
-- [ ] Report Pi model, serial number, RAM, storage, OS, kernel, architecture, and network interfaces
-- [ ] Decode the `/proc/cpuinfo` revision code into exact model, RAM size, and board revision for mixed Pi 4/5 fleets
-- [ ] Report bootloader EEPROM version and configured boot order (SD/USB/NVMe) via `rpi-eeprom-config` / `vcgencmd bootloader_version`, flagging drift across nodes
-- [ ] Report storage health: read-only root detection, SD card corruption signals, and NVMe/SSD SMART status where available
-- [ ] Add machine-readable output with `--json`
-- [ ] Track configuration drift across the fleet
+- [ ] Add machine-readable `--json`, `--quiet` / `--no-header`, and configurable result sorting
+- [ ] Add total and per-node timing for long-running commands
+- [ ] Consider a shared fleet runner and consistent concurrency patterns when needed by new features
+- [ ] Add selectable AI skill installation targets
+- [ ] Add package-manager distribution and update notifications after the binary upgrade path is proven
+- [ ] Consider a built-in `pictl upgrade` only with verified downloads, permission handling, interrupted-update recovery, and package-manager ownership rules
 
-### M6 — Services and logs
+### Later — Health, monitoring, and inventory
 
-- [ ] Add `pictl service status <unit>`
-- [ ] Add `pictl service restart <unit>`
-- [ ] Add `pictl logs <unit>` using `journalctl`
-- [ ] Support `--since`, `--lines`, `--node`, and `--role`
+- [ ] Decode current and historical undervoltage / throttling bits separately and report Pi 5 PMIC rails where available
+- [ ] Add `pictl cooling status` for fan RPM, cooling level, and thermal trip points
+- [ ] Add `pictl clock status` for RTC presence, NTP synchronization, and controller / node drift
+- [ ] Add `pictl top` / `pictl watch` with configurable refresh intervals and high-CPU alerts
+- [ ] Add `pictl inventory` for model, serial number, RAM, storage, OS, kernel, architecture, and interfaces
+- [ ] Decode board revision identifiers and audit bootloader EEPROM versions / boot order
+- [ ] Report read-only roots, storage corruption signals, and SMART health where supported
+- [ ] Track configuration drift and expand systemd health diagnostics
 
-### M7 — Rolling maintenance
+### Later — Services and maintenance
 
-- [ ] Add `pictl reboot`
-- [ ] Add `pictl reboot --rolling`
-- [ ] Add `pictl update --rolling`
-- [ ] Add `pictl overlay status|enable|disable` — audit and toggle the Pi read-only overlay filesystem (changes held in RAM) for reliability-critical nodes; a write command requiring sequential execution, a confirmation prompt, and a reboot to apply
-- [ ] Add confirmation prompts for disruptive operations
-
-### M8 — Discovery and auth improvements
-
-- [ ] Add `pictl discover --subnet 192.168.1.0/24`
-- [ ] Detect SSH hosts on port 22
-- [ ] Attempt Raspberry Pi identification through SSH when credentials are available
-- [ ] Show discovered candidates before adding them to config
-- [ ] Add optional password prompt auth without storing plaintext passwords in YAML
-- [ ] Add SSH agent and passphrase-aware key support
+- [ ] Add `pictl service status`, `pictl service restart`, and bounded `pictl logs` with targeting, time, and line filters
+- [ ] Add reboot and rolling reboot / update workflows with readiness checks and failure handling
+- [ ] Consider explicitly requested parallel updates with controlled concurrency
+- [ ] Add `pictl overlay status|enable|disable` with sequential execution, confirmation, and reboot handling
 
 ### Optional modules
 
-- [ ] `pictl k3s install`
-- [ ] `pictl k3s status`
-- [ ] `pictl k3s kubeconfig`
-- [ ] `pictl docker ps`
-- [ ] `pictl monitoring install`
-- [ ] `pictl kiosk status`
-- [ ] `pictl config audit` — audit I2C/SPI/1-Wire/serial-console enablement (`raspi-config nonint get_*`) across the fleet to catch interface drift before attaching sensors or reproducing a node setup
+- [ ] K3s installation, status, and kubeconfig workflows
+- [ ] Docker container inspection
+- [ ] Monitoring installation
+- [ ] Kiosk status
+- [ ] Hardware-interface configuration audits for I2C, SPI, 1-Wire, and serial consoles
 
-### AI integrations
-
-- [x] Add `pictl skill install`
-- [x] Install the bundled skill for Agents, Claude, and Codex project directories
-- [x] Add manifest-backed automatic upgrades and modification protection
-- [x] Add `pictl skill status`
-- [ ] Add selectable installation targets
+These modules do not block the core fleet-management MVP.

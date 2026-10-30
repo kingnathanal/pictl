@@ -172,72 +172,23 @@ pictl/
 
 ## Roadmap
 
-### M3 — Fleet targeting and command execution
+The canonical product roadmap and release acceptance checklist live in [Readme.md](Readme.md#roadmap). Keep milestone status there so contributor guidance and user-facing release scope do not diverge.
 
-- Add `--node` targeting for a single Pi
-- Add `--role` targeting for groups of Pis
-- Add `pictl exec` to run a command across selected nodes
-- Add safer command output formatting for multi-node results
+The v0.1.0 MVP promise is: **Connect your existing Raspberry Pis and see their health from one terminal.** Existing operational commands are a foundation; they do not establish public-release readiness.
 
-New Go concepts introduced: shared command filters, CLI flags, command argument handling, concurrent remote execution with structured results.
+Implement the remaining MVP milestones in this order:
 
-### M4 — Fleet health checks
+1. **First Pi onboarding:** initialize configuration outside the application checkout, add / list / update / remove nodes safely, verify authenticated access, and document the first successful health check.
+2. **Core reliability and safe operation:** fix complete role selection, define combined targeting and empty-selection errors, validate configuration, verify host keys, bound waits, preserve failure output, report meaningful exit statuses, and confirm maintenance targets.
+3. **Releases, installation, and upgrades:** identify application versions, validate CI and packaged controller binaries, publish checksums and release notes, and prove configuration-preserving upgrades and documented rollback.
 
-- Add `pictl check` for pass/warn/fail health checks
-- Detect undervoltage and throttling with `vcgencmd get_throttled`
-- Detect low disk space, high temperature, failed systemd units, and reboot-required state
-- Add summary output that makes unhealthy nodes obvious
+Release v0.1.0 only after the README acceptance checks pass: a first-time user reaches authenticated health information within ten minutes, two nodes sharing a role are both targeted, failure behavior is trustworthy, and packaged installation / upgrade / rollback have been exercised.
 
-New Go concepts introduced: check structs, severity levels, composable health checks, parsing command output into typed results.
+Discovery moves immediately after the MVP, ahead of advanced fleet features. Manual addition must work first; discovery returns candidates and reuses the same onboarding flow. An open SSH port does not identify a Raspberry Pi. SSH agent / encrypted-key support and custom ports follow in that milestone.
 
-### M4.3 — Power and cooling diagnostics
+Monitoring, advanced diagnostics, inventory, services, rolling maintenance, scripting enhancements, package managers, self-updating, and optional Kubernetes / Docker integrations remain later work. Do not expand v0.1.0 to include them without an explicit scope change.
 
-- Add `pictl power status` — decode the persistent `vcgencmd get_throttled` bits (undervoltage occurred, throttling occurred), not just the current-state bits `check` already reports; report Pi 5 PMIC rail voltage/current via `vcgencmd pmic_read_adc` where available
-- Add `pictl cooling status` — report fan RPM, active cooling level, and thermal trip points for nodes with a PoE HAT or official fan, so a silently dead fan is caught before it causes damage
-- Add `pictl clock status` — report RTC presence, NTP sync state, and clock drift between each node and the controller (headless Pis have no RTC by default and boot with a wrong clock after a power/network outage)
-
-New Go concepts introduced: bitmask decoding into typed flags, sysfs globbing across multiple small files, time drift calculations with `time.Duration`.
-
-### M5 — Inventory and audit
-
-- Add `pictl inventory`
-- Report Pi model, serial number, RAM, storage, OS, kernel, architecture, and network interfaces
-- Decode the `/proc/cpuinfo` revision code into exact model, RAM size, and board revision — essential for a mixed Pi 4/5 fleet
-- Report bootloader EEPROM version and configured boot order (SD/USB/NVMe) via `rpi-eeprom-config` / `vcgencmd bootloader_version`, flagging drift across nodes
-- Report storage health: read-only root detection, SD card corruption signals, and NVMe/SSD SMART status where available
-- Add machine-readable output with `--json`
-- Track configuration drift across the fleet
-
-New Go concepts introduced: JSON output, richer data models, normalized inventory records, revision-code bit decoding, cross-node version/config comparison.
-
-### M6 — Services and logs
-
-- Add `pictl service status <unit>`
-- Add `pictl service restart <unit>`
-- Add `pictl logs <unit>` using `journalctl`
-- Support `--since`, `--lines`, `--node`, and `--role`
-
-New Go concepts introduced: subcommands with arguments, systemd-oriented workflows, streaming or bounded log output.
-
-### M7 — Rolling maintenance
-
-- Add `pictl reboot`
-- Add `pictl reboot --rolling`
-- Add `pictl update --rolling`
-- Add `pictl overlay status|enable|disable` — audit and toggle the Pi read-only overlay filesystem (changes held in RAM) for reliability-critical nodes; a write command requiring sequential execution, a confirmation prompt, and a reboot to apply
-- Add confirmation prompts for disruptive operations
-
-New Go concepts introduced: sequential orchestration, readiness polling, user confirmation, failure handling for disruptive operations.
-
-### Optional modules
-
-- [ ] `pictl k3s install`
-- [ ] `pictl k3s status`
-- [ ] `pictl k3s kubeconfig`
-- [ ] `pictl docker ps`
-- [ ] `pictl monitoring install`
-- [ ] `pictl kiosk status`
-- [ ] `pictl config audit` — audit I2C/SPI/1-Wire/serial-console enablement (`raspi-config nonint get_*`) across the fleet to catch interface drift before attaching sensors or reproducing a node setup
+Roadmap entries describe planned behavior until implemented. In particular, the current config path rules and SSH trust behavior above describe the existing code; the MVP checklist defines the required changes. When implementing a milestone that changes CLI behavior, update the bundled user-facing skill and its version in the same change. A roadmap-only edit does not change the CLI or skill version.
 
 ---
 
@@ -245,15 +196,11 @@ New Go concepts introduced: sequential orchestration, readiness polling, user co
 
 | Milestone | Concepts Introduced |
 |---|---|
-| M1 — Ping | Structs, goroutines, `sync.WaitGroup`, YAML parsing, Cobra CLI |
-| M2 — Node stats | Channels, SSH client, string/strconv parsing, import aliasing, error wrapping, two-snapshot CPU delta |
-| M2 — Update | Sequential vs concurrent tradeoffs, `DEBIAN_FRONTEND`, exit code handling |
-| M3 — Targeting + exec | CLI flags, filtering slices by field, concurrent remote command execution |
-| M3.1 — Orchestration | Unified workers, environment binding, consistent concurrency |
-| M3.2 — Scripting | JSON marshalling, global flag management, exit code standards |
-| M4 — Health checks | Typed checks, severity levels, parsing system command output |
-| M4.1 — Advanced Health | Multi-stage command execution, existence checks |
-| M4.3 — Power + cooling | Bitmask decoding, sysfs globbing, time drift math |
-| M5 — Inventory | JSON output, normalized data models, audit-friendly records, revision-code decoding |
-| M6 — Services + logs | Nested commands, systemd workflows, bounded log retrieval |
-| M7 — Rolling maintenance | Sequential orchestration, readiness checks, confirmation prompts |
+| Existing foundation | Structs, goroutines, channels, YAML parsing, Cobra commands, SSH sessions, metric parsing |
+| MVP 1 — First Pi onboarding | Configuration validation, filesystem paths, safe writes, nested commands, actionable errors |
+| MVP 2 — Core reliability | Slice filtering, table-driven tests, SSH host-key callbacks, deadlines, cancellation, resource cleanup, result aggregation |
+| MVP 3 — Releases and upgrades | Build-time version injection, platform targets, CI automation, compatibility and migration design |
+| Next release — Discovery and authentication | CIDR iteration, bounded workers, candidate identification, SSH agents and encrypted keys |
+| Later — Scripting and fleet usability | JSON output, shared orchestration, timing and concurrency controls |
+| Later — Health and inventory | Bitmasks, sysfs parsing, timers, normalized records, drift comparisons |
+| Later — Services and maintenance | Nested commands, bounded logs, sequential orchestration, readiness polling |
